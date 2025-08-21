@@ -1,0 +1,8 @@
+spring:
+  datasource:
+    url: jdbc:sqlite:./songs.db
+    driver-class-name: org.sqlite.JDBC
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
