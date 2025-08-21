@@ -10,13 +10,18 @@ export default function Page() {
 
   const [title, setTitle] = useState("");
   const [currentSong, setCurrentSong] = useState("");
-  const [song, setSong] = useState([]); // 노래
-  const [songlist, setSongList] = useState([]); 
+  const [song, setSong] = useState(""); // 노래
+  const [songList, setSongList] = useState([]); 
   const [songFlag, setSongFlag] = useState(false); // 노래 녹음 플래그
-  const [apiUrl, setApiUrl] = useState("http://localhost:8080");
+  const [result, setResult] = useState("");
+  const apiUrl = "http://localhost:8080";
+  const esp32Url = "http://ddd";
 
   const saveSong = async () => {
-    
+
+    console.log("제목: " + title);
+    console.log("notes: " + song);
+
       try {
         const response = await axios.post(`${apiUrl}/api/savesong`, {
           "title": title,
@@ -59,7 +64,16 @@ export default function Page() {
       <div className="piano">
       <div className="white-keys">
         {['C', 'D', 'E', 'F', 'G', 'A', 'B'].map((note) => (
-          <button className="btn btn-outline-dark key white" key={note}>
+          <button className="btn btn-outline-dark key white"
+            key={note}
+            onClick={() => {
+              if (songFlag) {
+                setSong(song ? song + ", " + note : note);
+                console.log(song);
+              }
+              else console.log("녹음 상태가 아닙니다.");
+            }}
+          >
             {note}
           </button>
         ))}
@@ -79,9 +93,19 @@ export default function Page() {
       </div>
       
       <div className="btns">
-        <button className="btn btn-dark normal" onClick={() => setSongFlag(true) }>녹음 시작</button>
-        <button className="btn btn-dark normal" onClick={() => setSongFlag(false) }>녹음 종료</button>
-        <button className="btn btn-dark normal" onClick={saveSong} >저장</button>
+        <button className="btn btn-dark normal" onClick={() => {
+          setSongFlag(true);
+          setResult("");
+          setSong(""); // 노래 초기화
+          setTitle("");
+          }}
+        >녹음 시작</button>
+        <button
+          className="btn btn-dark normal"
+          onClick={() => {
+          setSongFlag(false);
+        }}
+        >녹음 종료</button>
         <input    // 제목 입력
           type='text'
           value={title}
@@ -92,6 +116,22 @@ export default function Page() {
           }}
           placeholder='노래 제목을 입력해주세요.'
         />
+        <button
+          className="btn btn-dark normal"
+          onClick={() => {
+            saveSong();
+            if (!title) {
+              setResult("❗제목을 입력하세요.")
+              console.log("제목을 입력하세요.");
+            }
+            if (!song) {
+              setResult(result + "❗노래를 입력하세요.")
+              console.log("노래를 입력하세요.");
+            }
+            if(title && song) setResult("노래 저장 완료 😺");
+          }}
+        >저장</button>
+        <text>🐰 {song} {result}</text>
       </div>
       
       <div className="listBox">
@@ -103,9 +143,7 @@ export default function Page() {
           
         <button className="btn btn-secondary playBtn normal" onClick={playSong}>재생</button>
         <button className="btn btn-secondary setBtn normal" onClick={setAlram}>이 곡으로 알람 설정</button>
-        
       </div>
-
       <div className="alarmBox">
         <div className=''>
           <h4>알람 설정</h4>

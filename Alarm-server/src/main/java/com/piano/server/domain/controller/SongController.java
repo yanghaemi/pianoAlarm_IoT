@@ -2,6 +2,7 @@ package com.piano.server.domain.controller;
 
 import java.util.List;
 
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,6 +17,7 @@ import lombok.RequiredArgsConstructor;;
 
 @RestController
 @RequiredArgsConstructor
+@CrossOrigin(origins = "http://192.168.150.46:3000") // 프론트 주소
 public class SongController {
 
     private final SongService service;
