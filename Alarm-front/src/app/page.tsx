@@ -1,21 +1,45 @@
 'use client'
 
 import Image from 'next/image'
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './globals.css'
 
 export default function Page() {
 
+  type Song = {
+    id: number;
+    title: String;
+    notes: String;
+  };
+
   const [title, setTitle] = useState("");
-  const [currentSong, setCurrentSong] = useState("");
+  const [currentSong, setCurrentSong] = useState<Song | null>(null);
   const [song, setSong] = useState(""); // 노래
-  const [songList, setSongList] = useState([]); 
+  const [songList, setSongList] = useState<Song[]>([]); // 노래 리스트
   const [songFlag, setSongFlag] = useState(false); // 노래 녹음 플래그
   const [result, setResult] = useState("");
   const apiUrl = "http://localhost:8080";
   const esp32Url = "http://ddd";
+
+  useEffect(() => {
+    getSongList();
+  },[]);
+
+  const getSongList = async () => {
+
+    try {
+      const response = await axios.get(`${apiUrl}/api/getsonglist`);
+
+      setSongList(response.data.data);
+
+      console.log("응답: " + response.data.data);
+      console.log("곡 리스트: " + response.data.data);
+    } catch (e) {
+      console.log("응답: " + e);
+    }
+  };
 
   const saveSong = async () => {
 
@@ -25,8 +49,8 @@ export default function Page() {
       try {
         const response = await axios.post(`${apiUrl}/api/savesong`, {
           "title": title,
-          "notes" : song
-        })
+          "notes": song
+        });
 
         console.log("응답: " + response.data);
       } catch (e) {
@@ -58,9 +82,11 @@ export default function Page() {
       console.log("에러: " + e);
     }
   };
+
   
   return (
     <>
+      {/* 피아노 건반 */}
       <div className="piano">
       <div className="white-keys">
         {['C', 'D', 'E', 'F', 'G', 'A', 'B'].map((note) => (
@@ -71,7 +97,10 @@ export default function Page() {
                 setSong(song ? song + ", " + note : note);
                 console.log(song);
               }
-              else console.log("녹음 상태가 아닙니다.");
+              else {
+                setResult("녹음 시작을 눌러주세요!");
+                console.log("녹음 상태가 아닙니다.");
+              }
             }}
           >
             {note}
@@ -92,6 +121,7 @@ export default function Page() {
       </div>
       </div>
       
+      {/* 노래 녹음 및 저장 */}
       <div className="btns">
         <button className="btn btn-dark normal" onClick={() => {
           setSongFlag(true);
@@ -119,7 +149,7 @@ export default function Page() {
         <button
           className="btn btn-dark normal"
           onClick={() => {
-            saveSong();
+           
             if (!title) {
               setResult("❗제목을 입력하세요.")
               console.log("제목을 입력하세요.");
@@ -128,22 +158,37 @@ export default function Page() {
               setResult(result + "❗노래를 입력하세요.")
               console.log("노래를 입력하세요.");
             }
-            if(title && song) setResult("노래 저장 완료 😺");
+            if (title && song) {
+              setResult("노래 저장 완료 😺");
+              saveSong();
+              getSongList();  // 리스트 갱신
+            }
           }}
         >저장</button>
-        <text>🐰 {song} {result}</text>
+        <text>{songFlag ?"녹음 중 ": ""}🐰 {song} {result}</text>
       </div>
       
+      {/* 노래 리스트 */}
       <div className="listBox">
         <div className="songList">
-          <h4>저장된 노래</h4>
+          <div className='songListTop'>
+            <h4>저장된 노래</h4><button className="btn btn-secondary renewBtn normal" onClick={getSongList}>갱신</button>
+          </div>
+          
+          <div className='songListBody'>
+            {songList.map((song) => (
+              <button className="btn song" key={song.id} onClick={() => { setCurrentSong(song); }}> {song.title} </button>
+            ))}
+          </div> 
         </div>
         
-        <text className='normal'>현재 곡 : {currentSong} </text>
+        <text className='normal'>현재 곡 : {currentSong?.title} </text>
           
         <button className="btn btn-secondary playBtn normal" onClick={playSong}>재생</button>
         <button className="btn btn-secondary setBtn normal" onClick={setAlram}>이 곡으로 알람 설정</button>
       </div>
+
+      {/* 알람 */}
       <div className="alarmBox">
         <div className=''>
           <h4>알람 설정</h4>
