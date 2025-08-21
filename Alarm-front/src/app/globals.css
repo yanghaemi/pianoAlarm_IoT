@@ -1,0 +1,118 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+  height: 100%;
+  margin: 0;
+}
+
+.piano {
+  position: relative;
+  width: fit-content;
+  margin: 0 auto;
+}
+
+.white-keys {
+  display: flex;
+}
+
+.key.white {
+  width: 60px;
+  height: 200px;
+  position: relative;
+  z-index: 1;
+}
+
+.black-keys {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  gap: 20px;
+  padding-left: 12%; /* 블랙건반 시작 위치 조절 */
+}
+
+.key.black {
+  width: 40px;
+  height: 120px;
+  /*background: black;*/
+  border: none;
+  position: relative;
+  z-index: 2;
+  margin: 0 -10px;
+}
+
+.spacer {
+  width: 1px;
+  height: 120px;
+}
+
+.wide-spacer {
+  width: 57.5px;
+}
+
+.btns {
+  position: relative;
+  display: inline-block;
+}
+
+.normal {
+  margin: 5px;
+}
+
+.songList {
+  background-color: darkgrey;
+  border-radius: 5%;
+  height: 600px;
+}
+
+.listBox {
+  position: absolute;
+  display: grid;
+  top: 20px;
+  right: 20px;
+  width: 20%;
+}
+
+.playBtn {
+  width: 20%;
+  justify-self: end;
+}
+
+.setBtn {
+  width: 70%;
+  justify-self: end;
+}
+
+.alarmBox {
+  position: absolute;
+  bottom: 0px;
+  border-radius: 5%;
+  border-color: #171717;
+  border: 1px;
+}
+
+h4 {
+  margin: 20px 25px;
+}
