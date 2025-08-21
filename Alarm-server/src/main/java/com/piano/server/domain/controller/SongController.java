@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.piano.server.domain.DTO.*;
@@ -17,7 +18,6 @@ import lombok.RequiredArgsConstructor;;
 
 @RestController
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://192.168.150.46:3000") // 프론트 주소
 public class SongController {
 
     private final SongService service;
@@ -63,7 +63,7 @@ public class SongController {
      * 설명: DB에 저장된 임의의 노래 악보를 가져옵니다.
      */
     @GetMapping("/api/getsong")
-    public ApiResponse<GetSongResponse> getSong(@RequestBody GetSongRequest request) {
+    public ApiResponse<GetSongResponse> getSong(@RequestParam GetSongRequest request) {
 
         ApiResponse<GetSongResponse> result = service.getSong(request);
         System.out.println("get the song : " + result);
@@ -77,9 +77,9 @@ public class SongController {
      * 설명: DB에 저장된 임의의 노래를 삭제합니다.
      */
     @DeleteMapping("/api/deletesong")
-    public ApiResponse<DeleteSongResponse> deleteSong(@RequestBody DeleteSongRequest request) {
+    public ApiResponse<DeleteSongResponse> deleteSong(@RequestParam Long id) {
 
-        ApiResponse<DeleteSongResponse> result = service.deleteSong(request);
+        ApiResponse<DeleteSongResponse> result = service.deleteSong(id);
         System.out.println("get the song : " + result);
 
         return result;
