@@ -95,31 +95,28 @@ public class SongService {
         return response;
     }
 
-    public ApiResponse<DeleteSongResponse> deleteSong(DeleteSongRequest request) {
+    public ApiResponse<DeleteSongResponse> deleteSong(Long id) {
         ApiResponse<DeleteSongResponse> response;
         DeleteSongResponse data = null;
 
         try {
-            Long id = request.getId();
 
             Optional<SongEntity> optionalEntity = songRepository.findById(id);
 
-            if(optionalEntity.isPresent()){
+            if (optionalEntity.isPresent()) {
                 SongEntity entity = optionalEntity.get();
-                
+
                 data = new DeleteSongResponse(
-                    entity.getId(),
-                    entity.getTitle(),
-                    entity.getNotes()
-                );
+                        entity.getId(),
+                        entity.getTitle(),
+                        entity.getNotes());
 
                 songRepository.deleteById(id);
 
                 response = new ApiResponse<>(200, data, "노래 삭제 성공");
-                
-            }else
-                response = new ApiResponse<>(400, null, "해당 노래를 찾을 수 없습니다.");
 
+            } else
+                response = new ApiResponse<>(400, null, "해당 노래를 찾을 수 없습니다.");
 
         } catch (Exception e) {
             response = new ApiResponse<>(500, null, "노래 삭제 실패: " + e.getMessage());

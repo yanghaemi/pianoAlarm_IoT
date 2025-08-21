@@ -83,6 +83,19 @@ export default function Page() {
     }
   };
 
+  const deleteSong = async (song) => {
+    try {
+      const response = await axios.delete(`${apiUrl}/api/deletesong`,
+        {
+          params: { id: song.id }
+        });
+
+      console.log("노래 삭제: " + response);
+    } catch (e) {
+      console.log("노래 삭제 에러: " + e);
+    }
+  }
+
   
   return (
     <>
@@ -165,7 +178,7 @@ export default function Page() {
             }
           }}
         >저장</button>
-        <text>{songFlag ?"녹음 중 ": ""}🐰 {song} {result}</text>
+        <text>{songFlag ? "녹음 중 ": ""}🐰 {song} {result}</text>
       </div>
       
       {/* 노래 리스트 */}
@@ -177,7 +190,18 @@ export default function Page() {
           
           <div className='songListBody'>
             {songList.map((song) => (
-              <button className="btn song" key={song.id} onClick={() => { setCurrentSong(song); }}> {song.title} </button>
+              <div className='songEntity' key={song.id} >
+                <button className="btn song" onClick={() => { setCurrentSong(song); }}>
+                  {song.title}
+                </button>
+                <button
+                  className='btn deletebtn'
+                  onClick={() => {
+                    deleteSong(song);
+                    getSongList();  // 리스트 갱신
+                  }}>🗑️
+                </button>
+              </div>
             ))}
           </div> 
         </div>
