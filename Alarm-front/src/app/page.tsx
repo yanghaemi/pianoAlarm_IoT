@@ -26,6 +26,7 @@ export default function Page() {
   const [min, setMin] = useState<number | null>(null);
 
   useEffect(() => {
+    getSongList();
     const interval = setInterval(() => {
       getSongList();
     }, 5000);
@@ -68,7 +69,7 @@ export default function Page() {
   const playSong = async() => {
     try {
       const response = await axios.post(`${esp32Url}/esp/playsong`, {
-        "notes" : song
+        "notes" : currentSong?.notes
       })
 
       console.log("응답: " + response);
@@ -81,7 +82,7 @@ export default function Page() {
     try {
       const response = await axios.post(`${esp32Url}/esp/setSong`,
         {
-          "notes": song
+          "notes": currentSong?.notes
         })
       
       console.log("응답: " + response);
