@@ -1,6 +1,5 @@
 'use client'
 
-import Image from 'next/image'
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -13,6 +12,7 @@ export default function Page() {
     title: String;
     notes: String;
   };
+  
 
   const [title, setTitle] = useState("");
   const [currentSong, setCurrentSong] = useState<Song | null>(null);
@@ -20,8 +20,8 @@ export default function Page() {
   const [songList, setSongList] = useState<Song[]>([]); // 노래 리스트
   const [songFlag, setSongFlag] = useState(false); // 노래 녹음 플래그
   const [result, setResult] = useState("");
-  const apiUrl = "http://localhost:8080";
-  const esp32Url = "http://ddd";
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  const esp32Url = process.env.NEXT_PUBLIC_ESP_URL;
   const [hour, setHour] = useState<number | null>(null);
   const [min, setMin] = useState<number | null>(null);
 
