@@ -1,11 +1,16 @@
 #include <WiFi.h>
+#include <WebServer.h>
+#include <ArduinoJson.h>
 #include <Arduino.h>
 #include <stdio.h>
-#include <string.h>
+#include <string>
 #include "freertos/task.h"
 #include "freertos/FreeRTOS.h" // Queue, Task 등 RTOS 사용 시
 #include "freertos/queue.h"    // QueueHandle_t 정의
 #include "esp_err.h"           // ESP_ERROR_CHECK 등 매크로
+
+#include "uart.h"
+#include "task.h"
 
 #define R_LED 2
 
@@ -14,11 +19,54 @@ static const char *TAG = "MAIN";
 const char *ssid = "LED-wifi-2.4G";
 const char *password = "led12345!";
 
-const int ledChannel = 0;
-const int freq = 5000;
-const int resolution = 8;
+WebServer server(80);
 
-WiFiServer server(80);
+int handleNotes()
+{
+    String body = server.arg("notes");
+    // String body = server.arg("notes"); 노트북 가져오면 notes -> plain로 바꾸기, get-> post로 바꾸기
+
+    Serial.println("받은 JSON: " + body);
+
+    JsonDocument doc;
+
+    DeserializationError err = deserializeJson(doc, body);
+
+    if (err)
+    {
+        Serial.print("JSON 파싱 실패: ");
+        Serial.println(err.c_str());
+        server.send(400, "application/json", "{\"code\":\"400\", \"data\":null, \"msg\": \"json 데이터 가져오기 실패\"}");
+        return -1;
+    }
+
+    Serial.println("notes: " + body);
+
+    return 0;
+}
+
+void handlePlaySong()
+{
+    if (handleNotes())
+    {
+
+        server.send(200, "application/json", "{\"code\":\"200\", \"data\":null, \"msg\": \"노래 재생 성공\"}");
+    }
+}
+
+void handleSetSong()
+{
+    if (handleNotes())
+    {
+
+        server.send(200, "application/json", "{\"code\":\"200\", \"data\":null, \"msg\": \"노래 세팅 성공\"}");
+    }
+}
+
+void handleSetAlarmTimeSong()
+{
+    server.send(200, "application/json", "{\"code\":\"200\", \"data\":null, \"msg\": \"알람 세팅 성공\"}");
+}
 
 void wifi_init()
 {
@@ -34,72 +82,69 @@ void wifi_init()
     }
     Serial.print(String("WIFI conneted\n IP : "));
     Serial.println(WiFi.localIP());
+
+    server.on("/playsong", HTTP_GET, handlePlaySong);
+    server.on("/setsong", HTTP_POST, handleSetSong);
+    server.on("/setalarmtime", HTTP_POST, handleSetAlarmTimeSong);
     server.begin();
 }
 
 void wifi_loop()
 {
+    server.handleClient();
+    // Serial.println("Client connected");
+    // String request = client.readStringUntil('\r');
+    // Serial.println(request);
 
-    WiFiClient client = server.available();
+    // if (request.indexOf("POST /playsong") >= 0)
+    // {
+    //     String body = server.arg("plain");
+    //     Serial.println("받은 JSON: " + body);
 
-    if (!client)
-    {
-        return;
-    }
+    //     StaticJsonDocument<200> doc;
 
-    Serial.println("Client connected");
-    String request = client.readStringUntil('\r');
-    Serial.println(request);
+    //     DeserializationError err = deserializeJson(doc, body);
 
-    if (request.indexOf("/esp/playsong") >= 0)
-    {
-        client.println("HTTP/1.1 200 OK");
-        client.println("Content-type:text/html");
-        client.println();                        // header 끝
-        client.println("<h1>red light on</h1>"); // 본문 내용
+    //     if (err)
+    //     {
+    //         Serial.print("JSON 파싱 실패: ");
+    //         Serial.println(err.c_str());
+    //         server.send(400, "application/json", "{\"error\":\"Invalid JSON\"}");
+    //         return;
+    //     }
 
-        pinMode(R_LED, OUTPUT);
+    //     String notes = doc["notes"]; // "C,D,E,F"
+    //     String title = doc["title"]; // "테스트곡"
 
-        digitalWrite(R_LED, HIGH);
-    }
+    //     Serial.println("notes: " + notes);
+    //     Serial.println("title: " + title);
 
-    else if (request.indexOf("/esp/setsong") >= 0)
-    {
-        client.println("HTTP/1.1 200 OK");
-        client.println("Content-type:text/html");
-        client.println();                        // header 끝
-        client.println("<h1>red light on</h1>"); // 본문 내용
+    //     pinMode(R_LED, OUTPUT);
 
-        pinMode(R_LED, OUTPUT);
+    //     digitalWrite(R_LED, HIGH);
+    // }
 
-        digitalWrite(R_LED, LOW);
-    }
+    // else if (request.indexOf("POST /setsong") >= 0)
+    // {
+    //     client.println("HTTP/1.1 200 OK");
+    //     client.println("Content-type:text/html");
+    //     client.println();                        // header 끝
+    //     client.println("<h1>red light on</h1>"); // 본문 내용
 
-    else if (request.indexOf("/light/pwm") >= 0)
-    {
+    //     pinMode(R_LED, OUTPUT);
 
-        // LED 채널과 주파수, 듀티 셋업
-        ledcSetup(ledChannel, freq, resolution);
+    //     digitalWrite(R_LED, LOW);
+    // }
 
-        // 각 led를 채널에 attach
-        ledcAttachPin(R_LED, ledChannel);
+    // else if (request.indexOf("POST /setalarmtime") >= 0)
+    // {
+    //     client.println("HTTP/1.1 200 OK");
+    //     client.println("Content-type:text/html");
+    //     client.println();                        // header 끝
+    //     client.println("<h1>red light on</h1>"); // 본문 내용
 
-        client.println("HTTP/1.1 200 OK");
-        client.println("Content-type:text/html");
-        client.println();               // header 끝
-        client.println("<h1>pwm</h1>"); // 본문 내용
+    //     pinMode(R_LED, OUTPUT);
 
-        for (int i = 0; i < 256; i++)
-        {
-            ledcWrite(ledChannel, i);
-            delay(10);
-        }
-        for (int i = 255; i >= 0; i--)
-        {
-            ledcWrite(ledChannel, i);
-            delay(10);
-        }
-    }
-
-    delay(1); // 보내는 시간 대기
+    //     digitalWrite(R_LED, LOW);
+    // }
 }

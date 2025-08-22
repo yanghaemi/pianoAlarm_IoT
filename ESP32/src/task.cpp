@@ -5,15 +5,29 @@
 #include "freertos/task.h"
 
 #include "task.h"
+#include "define.h"
+#include "uart.h"
 
 unsigned int task_1ms = 0;
+unsigned int task_300ms = 0;
+unsigned int flag_1ms = FALSE;
 
-void IRAM_ATTR task(void *param)
+void task()
 {
+    if (++task_300ms >= 300) // 300ms task
+    {
+        task_300ms = 0;
+    }
+}
+
+void IRAM_ATTR isr_task(void *param)
+{
+
     timer_group_clr_intr_status_in_isr(TIMER_GROUP_0, TIMER_0); // Clear timer 인터럽트 상태 레지스터(ISR)
     timer_group_enable_alarm_in_isr(TIMER_GROUP_0, TIMER_0);    // 인터럽트 사용
 
     task_1ms++;
+    //flag_1ms = TRUE;
 }
 
 void set_timer()
@@ -29,6 +43,6 @@ void set_timer()
     ESP_ERROR_CHECK(timer_set_counter_value(TIMER_GROUP_0, TIMER_0, 0x00000000ULL));
     ESP_ERROR_CHECK(timer_set_alarm_value(TIMER_GROUP_0, TIMER_0, 1000)); // 1ms (1MHz에서 1000)
     ESP_ERROR_CHECK(timer_enable_intr(TIMER_GROUP_0, TIMER_0));
-    ESP_ERROR_CHECK(timer_isr_register(TIMER_GROUP_0, TIMER_0, task, (void *)TIMER_0, ESP_INTR_FLAG_IRAM, NULL));
+    ESP_ERROR_CHECK(timer_isr_register(TIMER_GROUP_0, TIMER_0, isr_task, (void *)TIMER_0, ESP_INTR_FLAG_IRAM, NULL));
     ESP_ERROR_CHECK(timer_start(TIMER_GROUP_0, TIMER_0));
 }

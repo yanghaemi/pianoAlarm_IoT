@@ -8,4 +8,7 @@
 #define IO18 18
 #define IO19 19
 
+#define TRUE 1
+#define FALSE 0
+
 #endif
