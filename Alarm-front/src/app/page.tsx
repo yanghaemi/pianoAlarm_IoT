@@ -22,9 +22,16 @@ export default function Page() {
   const [result, setResult] = useState("");
   const apiUrl = "http://localhost:8080";
   const esp32Url = "http://ddd";
+  const [hour, setHour] = useState<number | null>(null);
+  const [min, setMin] = useState<number | null>(null);
 
   useEffect(() => {
-    getSongList();
+    const interval = setInterval(() => {
+      getSongList();
+    }, 5000);
+
+    return () => clearInterval(interval);
+
   },[]);
 
   const getSongList = async () => {
@@ -35,7 +42,7 @@ export default function Page() {
       setSongList(response.data.data);
 
       console.log("응답: " + response.data.data);
-      console.log("곡 리스트: " + response.data.data);
+      // console.log("곡 리스트: " + response.data.data);
     } catch (e) {
       console.log("응답: " + e);
     }
@@ -60,7 +67,7 @@ export default function Page() {
 
   const playSong = async() => {
     try {
-      const response = await axios.post(`${apiUrl}/esp/playsong`, {
+      const response = await axios.post(`${esp32Url}/esp/playsong`, {
         "notes" : song
       })
 
@@ -72,7 +79,7 @@ export default function Page() {
 
   const setAlram = async () => {
     try {
-      const response = await axios.post(`${apiUrl}/esp/setSong`,
+      const response = await axios.post(`${esp32Url}/esp/setSong`,
         {
           "notes": song
         })
@@ -83,7 +90,7 @@ export default function Page() {
     }
   };
 
-  const deleteSong = async (song) => {
+  const deleteSong = async (song: { id: number; title: String; notes: String; }) => {
     try {
       const response = await axios.delete(`${apiUrl}/api/deletesong`,
         {
@@ -143,12 +150,12 @@ export default function Page() {
           setTitle("");
           }}
         >녹음 시작</button>
-        <button
+        {/* <button
           className="btn btn-dark normal"
           onClick={() => {
           setSongFlag(false);
         }}
-        >녹음 종료</button>
+        >녹음 종료</button> */}
         <input    // 제목 입력
           type='text'
           value={title}
@@ -174,7 +181,7 @@ export default function Page() {
             if (title && song) {
               setResult("노래 저장 완료 😺");
               saveSong();
-              getSongList();  // 리스트 갱신
+              setSongFlag(false);
             }
           }}
         >저장</button>
@@ -198,7 +205,6 @@ export default function Page() {
                   className='btn deletebtn'
                   onClick={() => {
                     deleteSong(song);
-                    getSongList();  // 리스트 갱신
                   }}>🗑️
                 </button>
               </div>
@@ -216,6 +222,19 @@ export default function Page() {
       <div className="alarmBox">
         <div className=''>
           <h4>알람 설정</h4>
+          <div className="input-group mb-3">
+            <input type="text" className="form-control" placeholder="hour" aria-label="setTime" aria-describedby="button-addon2" />
+            <span className="input-group-text">:</span>
+            <input type="text" className="form-control" placeholder="min" aria-label="setTime" aria-describedby="button-addon2"/>
+            <button
+              className="btn btn-outline-secondary"
+              type="button"
+              id="button-addon2"
+              onClick={() => {
+                
+              }}>시간 설정
+            </button>
+          </div>
         </div>
       </div>
     </>

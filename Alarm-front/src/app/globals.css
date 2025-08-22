@@ -83,7 +83,7 @@ body {
 
 .songList {
   background-color: rgb(230, 226, 221);
-  border-radius: 5%;
+  border-radius: 20px;
   height: 600px;
 }
 
@@ -122,15 +122,15 @@ body {
   margin: 10px 20px;
 }
 
-.deletebtn {
-}
-
 .alarmBox {
+  margin: 20px 5px;
+  padding: 5px;
+  width: 400px;
   position: absolute;
-  bottom: 0px;
-  border-radius: 5%;
+
+  border-radius: 20px;
   border-color: #171717;
-  border: 1px;
+  border: 2px solid;
 }
 
 .song {
