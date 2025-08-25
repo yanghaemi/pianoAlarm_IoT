@@ -14,8 +14,8 @@
 
 static const char *TAG = "MAIN";
 
-const char *ssid = "LED-wifi-2.4G";
-const char *password = "led12345!";
+const char *ssid = "";
+const char *password = "";
 
 WebServer server(80);
 
