@@ -2,10 +2,15 @@
 #define TASK_H_
 
 extern unsigned int task_1ms;
-extern unsigned int flag_1ms;
+extern boolean flag_1ms;
 
-void IRAM_ATTR isr_task(void *param); // 타이머 인터럽트
-void set_timer();                     // timer init
+extern String currentSong;
+extern unsigned int song_idx;
+extern boolean playSongFlag;
+
+void IRAM_ATTR
+isr_task(void *param); // 타이머 인터럽트
+void set_timer();      // timer init
 void task();
 
 #endif

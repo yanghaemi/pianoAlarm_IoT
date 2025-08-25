@@ -73,8 +73,9 @@ body {
 }
 
 .btns {
-  position: relative;
   display: inline-block;
+  position: relative;
+  width: fit-content;
 }
 
 .normal {
@@ -96,17 +97,18 @@ body {
 }
 
 .playBtn {
-  width: 20%;
+  width: 70px;
   justify-self: end;
 }
 
 .setBtn {
-  width: 70%;
+  width: 180px;
   justify-self: end;
 }
 
 .renewBtn {
-  right: 15px;
+  width: 70px;
+  justify-self: end;
 }
 
 .songListTop {

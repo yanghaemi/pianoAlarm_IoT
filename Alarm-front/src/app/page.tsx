@@ -9,8 +9,8 @@ export default function Page() {
 
   type Song = {
     id: number;
-    title: String;
-    notes: String;
+    title: string;
+    notes: string;
   };
   
 
@@ -59,18 +59,29 @@ export default function Page() {
           "title": title,
           "notes": song
         });
-
+        setResult("노래 저장 완료 😺");
         console.log("응답: " + response.data);
       } catch (e) {
+        setResult("노래 저장 실패 😱"+e);
+
         console.log("에러: " + e);
       }
   };
 
   const playSong = async() => {
     try {
-      const response = await axios.post(`${esp32Url}/esp/playsong`, {
+      const mySong: Song = {
+        id: 1,
+        title: "test",
+        notes: "CDEFGABC"
+      };
+
+      setCurrentSong(mySong);
+
+      const response = await axios.post(`${esp32Url}/playsong`, {
         "notes" : currentSong?.notes
       })
+      console.log("playSong 보낼 거 : " + currentSong?.notes);
 
       console.log("응답: " + response);
     } catch (e){
@@ -78,16 +89,30 @@ export default function Page() {
     }
   }
 
-  const setAlram = async () => {
+  const setAlarm = async () => {
     try {
-      const response = await axios.post(`${esp32Url}/esp/setSong`,
+      const response = await axios.post(`${esp32Url}/setSong`,
         {
           "notes": currentSong?.notes
-        })
-      
+        });
+      console.log("setAlarm 보낼 거 : " + currentSong?.notes);
       console.log("응답: " + response);
     } catch (e) {
       console.log("에러: " + e);
+    }
+  };
+
+  const setAlarmTime = async () => {
+    try {
+      const response = await axios.post(`${esp32Url}/setSong`, {
+        "notes" : currentSong?.notes
+      });
+
+      console.log("응답: " + response);
+      setResult("알람 노래로 설정 😺"+currentSong?.notes);
+    } catch (e) {
+      console.log("error: " + e);
+      setResult("알람 노래 설정 실패 😱");
     }
   };
 
@@ -107,40 +132,7 @@ export default function Page() {
   
   return (
     <>
-      {/* 피아노 건반 */}
-      <div className="piano">
-      <div className="white-keys">
-        {['C', 'D', 'E', 'F', 'G', 'A', 'B'].map((note) => (
-          <button className="btn btn-outline-dark key white"
-            key={note}
-            onClick={() => {
-              if (songFlag) {
-                setSong(song ? song + ", " + note : note);
-                console.log(song);
-              }
-              else {
-                setResult("녹음 시작을 눌러주세요!");
-                console.log("녹음 상태가 아닙니다.");
-              }
-            }}
-          >
-            {note}
-          </button>
-        ))}
-      </div>
-      <div className="black-keys">
-        <button className="btn btn-dark key black">C#</button>
-        <div className="spacer" />
-        <button className="btn btn-dark key black">D#</button>
-        <div className="wide-spacer spacer" /> 
-        <button className="btn btn-dark key black">F#</button>
-        <div className="spacer" />
-        <button className="btn btn-dark key black">G#</button>
-        <div className="spacer" />
-        <button className="btn btn-dark key black">A#</button>
-        <div className="spacer" /> 
-      </div>
-      </div>
+      
       
       {/* 노래 녹음 및 저장 */}
       <div className="btns">
@@ -180,7 +172,7 @@ export default function Page() {
               console.log("노래를 입력하세요.");
             }
             if (title && song) {
-              setResult("노래 저장 완료 😺");
+             
               saveSong();
               setSongFlag(false);
             }
@@ -188,12 +180,46 @@ export default function Page() {
         >저장</button>
         <text>{songFlag ? "녹음 중 ": ""}🐰 {song} {result}</text>
       </div>
-      
+      {/* 피아노 건반 */}
+      <div className="piano">
+      <div className="white-keys">
+        {['C', 'D', 'E', 'F', 'G', 'A', 'B'].map((note) => (
+          <button className="btn btn-outline-dark key white"
+            key={note}
+            onClick={() => {
+              if (songFlag) {
+                setSong(song+note);
+                console.log(song);
+              }
+              else {
+                setResult("녹음 시작을 눌러주세요!");
+                console.log("녹음 상태가 아닙니다.");
+              }
+            }}
+          >
+            {note}
+          </button>
+        ))}
+      </div>
+      <div className="black-keys">
+        <button className="btn btn-dark key black">C#</button>
+        <div className="spacer" />
+        <button className="btn btn-dark key black">D#</button>
+        <div className="wide-spacer spacer" /> 
+        <button className="btn btn-dark key black">F#</button>
+        <div className="spacer" />
+        <button className="btn btn-dark key black">G#</button>
+        <div className="spacer" />
+        <button className="btn btn-dark key black">A#</button>
+        <div className="spacer" /> 
+      </div>
+      </div>
       {/* 노래 리스트 */}
       <div className="listBox">
+        <button className="btn btn-secondary renewBtn normal" onClick={getSongList}>갱신</button>
         <div className="songList">
           <div className='songListTop'>
-            <h4>저장된 노래</h4><button className="btn btn-secondary renewBtn normal" onClick={getSongList}>갱신</button>
+            <h4>저장된 노래</h4>
           </div>
           
           <div className='songListBody'>
@@ -213,10 +239,10 @@ export default function Page() {
           </div> 
         </div>
         
-        <text className='normal'>현재 곡 : {currentSong?.title} </text>
+        <text className='normal'>현재 곡 : {currentSong?.title} <br/> {result} </text>
           
         <button className="btn btn-secondary playBtn normal" onClick={playSong}>재생</button>
-        <button className="btn btn-secondary setBtn normal" onClick={setAlram}>이 곡으로 알람 설정</button>
+        <button className="btn btn-secondary setBtn normal" onClick={setAlarm}>이 곡으로 알람 설정</button>
       </div>
 
       {/* 알람 */}

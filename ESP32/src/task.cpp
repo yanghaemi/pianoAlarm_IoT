@@ -1,3 +1,5 @@
+#include <Arduino.h>
+
 #include "driver/timer.h"
 #include "freertos/FreeRTOS.h" // Queue, Task 등 RTOS 사용 시
 #include "esp_err.h"           // ESP_ERROR_CHECK 등 매크로
@@ -6,16 +8,43 @@
 
 #include "task.h"
 #include "define.h"
-#include "uart.h"
 
 unsigned int task_1ms = 0;
 unsigned int task_300ms = 0;
-unsigned int flag_1ms = FALSE;
+boolean flag_1ms = false;
+
+boolean playSongFlag = false;
+unsigned int song_idx = 0;
+String currentSong;
+
+void do_every_1ms()
+{
+}
 
 void task()
 {
-    if (++task_300ms >= 300) // 300ms task
+    do_every_1ms();
+
+    if (++task_300ms >= 500) // 300ms task
     {
+        if (playSongFlag == true)
+        {
+            if (*(volatile uint32_t *)(0x3FF44004) & (1 << 2))
+                *(volatile uint32_t *)(0x3FF4400C) = (1 << 2);
+            else
+                *(volatile uint32_t *)(0x3FF44008) = (1 << 2);
+
+            Serial.println(currentSong[song_idx]);
+            Serial2.write(currentSong[song_idx++]);
+
+            if (song_idx > currentSong.length())
+            {
+                Serial.println("끝");
+
+                playSongFlag = false;
+            }
+        }
+
         task_300ms = 0;
     }
 }
@@ -27,7 +56,7 @@ void IRAM_ATTR isr_task(void *param)
     timer_group_enable_alarm_in_isr(TIMER_GROUP_0, TIMER_0);    // 인터럽트 사용
 
     task_1ms++;
-    //flag_1ms = TRUE;
+    flag_1ms = true;
 }
 
 void set_timer()

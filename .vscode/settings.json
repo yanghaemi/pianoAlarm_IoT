@@ -1,4 +1,5 @@
 {
   "java.compile.nullAnalysis.mode": "automatic",
-  "C_Cpp.errorSquiggles": "disabled"
+  "C_Cpp.errorSquiggles": "disabled",
+  "cmake.sourceDirectory": "C:/Users/LED031/Desktop/pianoAlarm_IoT/esp32/src"
 }

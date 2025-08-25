@@ -3,13 +3,11 @@
 #include <ArduinoJson.h>
 #include <Arduino.h>
 #include <stdio.h>
-#include <string>
+#include <string.h>
 #include "freertos/task.h"
 #include "freertos/FreeRTOS.h" // Queue, Task 등 RTOS 사용 시
 #include "freertos/queue.h"    // QueueHandle_t 정의
-#include "esp_err.h"           // ESP_ERROR_CHECK 등 매크로
 
-#include "uart.h"
 #include "task.h"
 
 #define R_LED 2
@@ -21,9 +19,11 @@ const char *password = "led12345!";
 
 WebServer server(80);
 
+String body;
+
 int handleNotes()
 {
-    String body = server.arg("notes");
+    body = server.arg("notes");
     // String body = server.arg("notes"); 노트북 가져오면 notes -> plain로 바꾸기, get-> post로 바꾸기
 
     Serial.println("받은 JSON: " + body);
@@ -37,19 +37,19 @@ int handleNotes()
         Serial.print("JSON 파싱 실패: ");
         Serial.println(err.c_str());
         server.send(400, "application/json", "{\"code\":\"400\", \"data\":null, \"msg\": \"json 데이터 가져오기 실패\"}");
-        return -1;
+        return 0;
     }
 
-    Serial.println("notes: " + body);
-
-    return 0;
+    return 1;
 }
 
 void handlePlaySong()
 {
     if (handleNotes())
     {
-
+        currentSong = body.c_str();
+        playSongFlag = 1;
+        song_idx = 1;
         server.send(200, "application/json", "{\"code\":\"200\", \"data\":null, \"msg\": \"노래 재생 성공\"}");
     }
 }
@@ -58,13 +58,15 @@ void handleSetSong()
 {
     if (handleNotes())
     {
-
+        currentSong = body.c_str();
+        song_idx = 1;
         server.send(200, "application/json", "{\"code\":\"200\", \"data\":null, \"msg\": \"노래 세팅 성공\"}");
     }
 }
 
 void handleSetAlarmTimeSong()
 {
+
     server.send(200, "application/json", "{\"code\":\"200\", \"data\":null, \"msg\": \"알람 세팅 성공\"}");
 }
 
@@ -80,7 +82,7 @@ void wifi_init()
         delay(500);
         Serial.println(".");
     }
-    Serial.print(String("WIFI conneted\n IP : "));
+    Serial.print(String("WIFI connected\n IP : "));
     Serial.println(WiFi.localIP());
 
     server.on("/playsong", HTTP_GET, handlePlaySong);

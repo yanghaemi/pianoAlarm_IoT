@@ -4,25 +4,20 @@
 #include <string.h>
 #include <Arduino.h>
 #include "piano_wifi.h"
-#include "uart.h"
 #include "task.h"
 #include "define.h"
 
 void setup()
 {
 
-  Serial.begin(115200); // serial 통신 시작
-  Serial2.begin(9600, SERIAL_8N1, IO17, IO16);
+  Serial.begin(115200);                        // serial 통신 시작
+  Serial2.begin(9600, SERIAL_8N1, IO17, IO16); // JKIT 통신
 
   wifi_init();
 
-  // install_uart_driver();
-  // set_communication_parameters();
-  // set_communication_pins();
-
-  // pinMode(R_LED, OUTPUT);
-
   set_timer();
+
+  *(volatile uint32_t *)(0x3FF44024) = (1 << 2);
 }
 
 void loop()
@@ -30,16 +25,10 @@ void loop()
 
   wifi_loop();
 
-  // if (flag_1ms)
-  // {
-  //   flag_1ms = FALSE;
-  //   task();
-  // }
-
-  if (task_1ms % 1000 == 0)
+  if (flag_1ms)
   {
-    // uart_send('D');
-    Serial2.write('D');
+    flag_1ms = false;
+    task();
   }
 
   // uart_receive();
