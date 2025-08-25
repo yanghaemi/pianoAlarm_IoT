@@ -14,8 +14,11 @@
 
 static const char *TAG = "MAIN";
 
-const char *ssid = "";
-const char *password = "";
+const char *ssid = WIFI_SSID;
+const char *password = WIFI_PASS;
+
+// unsigned int hour = 0;
+// unsigned int min = 0;
 
 WebServer server(80);
 
@@ -48,8 +51,8 @@ void handlePlaySong()
     if (handleNotes())
     {
         currentSong = body.c_str();
-        playSongFlag = 1;
-        song_idx = 1;
+        playSongFlag = true;
+        song_idx = 0;
         server.send(200, "application/json", "{\"code\":\"200\", \"data\":null, \"msg\": \"노래 재생 성공\"}");
     }
 }
@@ -58,14 +61,17 @@ void handleSetSong()
 {
     if (handleNotes())
     {
+        playSongFlag = false;
+
         currentSong = body.c_str();
-        song_idx = 1;
+        song_idx = 0;
         server.send(200, "application/json", "{\"code\":\"200\", \"data\":null, \"msg\": \"노래 세팅 성공\"}");
     }
 }
 
 void handleSetAlarmTimeSong()
 {
+    playSongFlag = false;
 
     server.send(200, "application/json", "{\"code\":\"200\", \"data\":null, \"msg\": \"알람 세팅 성공\"}");
 }

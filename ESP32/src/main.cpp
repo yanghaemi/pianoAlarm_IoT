@@ -17,7 +17,7 @@ void setup()
 
   set_timer();
 
-  *(volatile uint32_t *)(0x3FF44024) = (1 << 2);
+  *(volatile uint32_t *)(0x3FF44024) = (1 << 2); // GPIO 2 OUTPUT으로 설정
 }
 
 void loop()
@@ -30,15 +30,4 @@ void loop()
     flag_1ms = false;
     task();
   }
-
-  // uart_receive();
-
-  // if (data[0] == 'c' || data[0] == 'C')
-  // {
-  //   // digitalWrite(R_LED, HIGH);
-  // }
-  // if (data[0] == 'd' || data[0] == 'D')
-  // {
-  //   // digitalWrite(R_LED, LOW);
-  // }
 }

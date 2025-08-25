@@ -22,8 +22,8 @@ export default function Page() {
   const [result, setResult] = useState("");
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
   const esp32Url = process.env.NEXT_PUBLIC_ESP_URL;
-  const [hour, setHour] = useState<number | null>(null);
-  const [min, setMin] = useState<number | null>(null);
+  const [hour, setHour] = useState<string>("0");
+  const [min, setMin] = useState<string>("0");
 
   useEffect(() => {
     getSongList();
@@ -250,15 +250,33 @@ export default function Page() {
         <div className=''>
           <h4>알람 설정</h4>
           <div className="input-group mb-3">
-            <input type="text" className="form-control" placeholder="hour" aria-label="setTime" aria-describedby="button-addon2" />
+            <input
+              type="text"
+              className="form-control"
+              placeholder="hour"
+              aria-label="setTime"
+              value={hour}
+              onChange={(e) => {
+                setHour(e.target.value);
+              }}
+              aria-describedby="button-addon2" />
             <span className="input-group-text">:</span>
-            <input type="text" className="form-control" placeholder="min" aria-label="setTime" aria-describedby="button-addon2"/>
+            <input
+              type="text"
+              className="form-control"
+              placeholder="min"
+              aria-label="setTime"
+              value={min}
+              onChange={(e) => {
+                setMin(e.target.value);
+              }}
+              aria-describedby="button-addon2" />
             <button
               className="btn btn-outline-secondary"
               type="button"
               id="button-addon2"
               onClick={() => {
-                
+                console.log(hour + "시 "+ min + "분");
               }}>시간 설정
             </button>
           </div>
