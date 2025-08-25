@@ -37,7 +37,7 @@ void task()
             Serial.println(currentSong[song_idx]);
             Serial2.write(currentSong[song_idx++]);
 
-            if (song_idx > currentSong.length())
+            if (song_idx >= currentSong.length() - 1)
             {
                 Serial.println("끝");
 
