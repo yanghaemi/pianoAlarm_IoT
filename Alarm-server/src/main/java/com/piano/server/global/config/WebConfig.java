@@ -13,7 +13,7 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addMapping("/**") // 모든 경로에 대해 CORS 허용
                 .allowedOrigins("http://192.168.150.46:3000")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH")
-                .allowedHeaders("Content-Type", "Authorization")
+                .allowedHeaders("*")
                 .allowCredentials(true);
     }
 }
