@@ -128,7 +128,7 @@ body {
   margin: 20px 5px;
   padding: 5px;
   width: 400px;
-  position: absolute;
+  position: relative;
 
   border-radius: 20px;
   border-color: #171717;

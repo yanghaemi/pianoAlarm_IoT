@@ -19,6 +19,10 @@ String currentSong;
 
 void do_every_1ms()
 {
+    if (Serial2.read() == 'P')
+    {
+        playSongFlag = true;
+    }
 }
 
 void task()

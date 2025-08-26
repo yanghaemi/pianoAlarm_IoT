@@ -12,18 +12,18 @@ export default function Page() {
     title: string;
     notes: string;
   };
-  
 
   const [title, setTitle] = useState("");
   const [currentSong, setCurrentSong] = useState<Song | null>(null);
   const [song, setSong] = useState(""); // 노래
   const [songList, setSongList] = useState<Song[]>([]); // 노래 리스트
-  const [songFlag, setSongFlag] = useState(false); // 노래 녹음 플래그
   const [result, setResult] = useState("");
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
   const esp32Url = process.env.NEXT_PUBLIC_ESP_URL;
-  const [hour, setHour] = useState<string>("0");
-  const [min, setMin] = useState<string>("0");
+  const [alarmHour, setAlarmHour] = useState<number>(0);
+  const [alarmMin, setAlarmMin] = useState<number>(0);
+  const [currentHour, setCurrentHour] = useState<number>(0);
+  const [currentMin, setCurrentMin] = useState<number>(0);
 
   useEffect(() => {
     getSongList();
@@ -43,7 +43,6 @@ export default function Page() {
       setSongList(response.data.data);
 
       console.log("응답: " + response.data.data);
-      // console.log("곡 리스트: " + response.data.data);
     } catch (e) {
       console.log("응답: " + e);
     }
@@ -90,8 +89,9 @@ export default function Page() {
   }
 
   const setAlarm = async () => {
+    
     try {
-      const response = await axios.post(`${esp32Url}/setSong`,
+      const response = await axios.post(`${esp32Url}/setsong`,
         {
           "notes": currentSong?.notes
         });
@@ -102,14 +102,27 @@ export default function Page() {
     }
   };
 
+  const setCurrentTime = async () => {
+    try {
+      const response = await axios.post(`${esp32Url}/setcurrenttime`, {
+        "hour": currentHour,
+        "min": currentMin
+      })
+      console.log("응답: " + response.data);
+    } catch (e) {
+      console.log("에러: " + e);
+    }
+  };
+
   const setAlarmTime = async () => {
     try {
-      const response = await axios.post(`${esp32Url}/setSong`, {
-        "notes" : currentSong?.notes
+      const response = await axios.post(`${esp32Url}/setalarmtime`, {
+        "hour": alarmHour,
+        "min" : alarmMin
       });
 
       console.log("응답: " + response);
-      setResult("알람 노래로 설정 😺"+currentSong?.notes);
+      setResult("알람 노래로 설정 😺 \n"+currentSong?.title + "\n"+currentSong?.notes);
     } catch (e) {
       console.log("error: " + e);
       setResult("알람 노래 설정 실패 😱");
@@ -122,33 +135,23 @@ export default function Page() {
         {
           params: { id: song.id }
         });
-
-      console.log("노래 삭제: " + response);
+      console.log("노래 삭제 😺: " + response);
     } catch (e) {
-      console.log("노래 삭제 에러: " + e);
+      console.log("노래 삭제 실패 😱: " + e);
     }
   }
 
-  
   return (
     <>
-      
-      
       {/* 노래 녹음 및 저장 */}
       <div className="btns">
-        <button className="btn btn-dark normal" onClick={() => {
-          setSongFlag(true);
-          setResult("");
-          setSong(""); // 노래 초기화
-          setTitle("");
-          }}
-        >녹음 시작</button>
-        {/* <button
-          className="btn btn-dark normal"
+        <button className="btn btn-dark normal"
           onClick={() => {
-          setSongFlag(false);
-        }}
-        >녹음 종료</button> */}
+            setResult("");
+            setSong(""); // 노래 초기화
+            setTitle("");
+          }}
+        >초기화</button>
         <input    // 제목 입력
           type='text'
           value={title}
@@ -164,21 +167,20 @@ export default function Page() {
           onClick={() => {
            
             if (!title) {
-              setResult("❗제목을 입력하세요.")
+              setResult("❗제목을 입력하세요.");
               console.log("제목을 입력하세요.");
             }
             if (!song) {
-              setResult(result + "❗노래를 입력하세요.")
+              setResult(result + "❗노래를 입력하세요.");
               console.log("노래를 입력하세요.");
             }
             if (title && song) {
              
               saveSong();
-              setSongFlag(false);
             }
           }}
         >저장</button>
-        <text>{songFlag ? "녹음 중 ": ""}🐰 {song} {result}</text>
+        <text>🐰 {song} {result}</text>
       </div>
       {/* 피아노 건반 */}
       <div className="piano">
@@ -187,14 +189,8 @@ export default function Page() {
           <button className="btn btn-outline-dark key white"
             key={note}
             onClick={() => {
-              if (songFlag) {
-                setSong(song+note);
-                console.log(song);
-              }
-              else {
-                setResult("녹음 시작을 눌러주세요!");
-                console.log("녹음 상태가 아닙니다.");
-              }
+              setSong(song+note);
+              console.log(song);
             }}
           >
             {note}
@@ -247,41 +243,67 @@ export default function Page() {
 
       {/* 알람 */}
       <div className="alarmBox">
-        <div className=''>
-          <h4>알람 설정</h4>
+          <h4>현재 시간 설정 {currentHour} : {currentMin}</h4>
           <div className="input-group mb-3">
             <input
-              type="text"
+              type="number"
               className="form-control"
               placeholder="hour"
               aria-label="setTime"
-              value={hour}
-              onChange={(e) => {
-                setHour(e.target.value);
-              }}
+              value={currentHour}
+              onChange={(e) => setCurrentHour(parseInt(e.target.value, 10))}
               aria-describedby="button-addon2" />
             <span className="input-group-text">:</span>
             <input
-              type="text"
+              type="number"
               className="form-control"
               placeholder="min"
               aria-label="setTime"
-              value={min}
-              onChange={(e) => {
-                setMin(e.target.value);
-              }}
-              aria-describedby="button-addon2" />
+              value={currentMin}
+              onChange={(e) => setCurrentMin(parseInt(e.target.value, 10))}
+            aria-describedby="button-addon2" />
             <button
               className="btn btn-outline-secondary"
               type="button"
               id="button-addon2"
               onClick={() => {
-                console.log(hour + "시 "+ min + "분");
-              }}>시간 설정
+                console.log(`현재 시각: ${currentHour}시 ${currentMin}분`);
+                setCurrentTime();
+              }}>현재 시간 설정
+            </button>
+          </div>
+      </div>
+      <div className="alarmBox">
+        <h4>알람 시간 설정 {alarmHour} : {alarmMin}</h4>
+          <div className="input-group mb-3">
+            <input
+              type="number"
+              className="form-control"
+              placeholder="hour"
+              aria-label="setTime"
+              value={alarmHour}
+              onChange={(e) => setAlarmHour(parseInt(e.target.value, 10))}
+              aria-describedby="button-addon2" />
+            <span className="input-group-text">:</span>
+            <input
+              type="number"
+              className="form-control"
+              placeholder="min"
+              aria-label="setTime"
+              value={alarmMin}
+              onChange={(e) => setAlarmMin(parseInt(e.target.value, 10))}
+            aria-describedby="button-addon2" />
+            <button
+              className="btn btn-outline-secondary"
+              type="button"
+              id="button-addon2"
+              onClick={() => {
+                console.log(`알람: ${alarmHour}시 ${alarmMin}분`);
+                setAlarmTime();
+              }}>알람 시간 설정 
             </button>
           </div>
         </div>
-      </div>
     </>
   );
 }
