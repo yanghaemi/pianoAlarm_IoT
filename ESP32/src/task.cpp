@@ -10,7 +10,7 @@
 #include "define.h"
 
 unsigned int task_1ms = 0;
-unsigned int task_300ms = 0;
+unsigned int task_500ms = 0;
 boolean flag_1ms = false;
 
 boolean playSongFlag = false;
@@ -22,6 +22,7 @@ void do_every_1ms()
     if (Serial2.read() == 'P')
     {
         playSongFlag = true;
+        song_idx = true;
     }
 }
 
@@ -29,7 +30,7 @@ void task()
 {
     do_every_1ms();
 
-    if (++task_300ms >= 500) // 300ms task
+    if (++task_500ms >= 500) // 300ms task
     {
         if (playSongFlag == true)
         {
@@ -49,7 +50,7 @@ void task()
             }
         }
 
-        task_300ms = 0;
+        task_500ms = 0;
     }
 }
 

@@ -51,8 +51,10 @@ void handlePlaySong()
     if (handleNotes())
     {
         currentSong = body.c_str();
-        playSongFlag = true;
         song_idx = 0;
+
+        playSongFlag = true;
+
         server.send(200, "application/json", "{\"code\":\"200\", \"data\":null, \"msg\": \"노래 재생 성공\"}");
     }
 }
@@ -61,10 +63,11 @@ void handleSetSong()
 {
     if (handleNotes())
     {
-        playSongFlag = false;
-
         currentSong = body.c_str();
         song_idx = 0;
+
+        playSongFlag = false;
+
         server.send(200, "application/json", "{\"code\":\"200\", \"data\":null, \"msg\": \"노래 세팅 성공\"}");
     }
 }
@@ -100,59 +103,4 @@ void wifi_init()
 void wifi_loop()
 {
     server.handleClient();
-    // Serial.println("Client connected");
-    // String request = client.readStringUntil('\r');
-    // Serial.println(request);
-
-    // if (request.indexOf("POST /playsong") >= 0)
-    // {
-    //     String body = server.arg("plain");
-    //     Serial.println("받은 JSON: " + body);
-
-    //     StaticJsonDocument<200> doc;
-
-    //     DeserializationError err = deserializeJson(doc, body);
-
-    //     if (err)
-    //     {
-    //         Serial.print("JSON 파싱 실패: ");
-    //         Serial.println(err.c_str());
-    //         server.send(400, "application/json", "{\"error\":\"Invalid JSON\"}");
-    //         return;
-    //     }
-
-    //     String notes = doc["notes"]; // "C,D,E,F"
-    //     String title = doc["title"]; // "테스트곡"
-
-    //     Serial.println("notes: " + notes);
-    //     Serial.println("title: " + title);
-
-    //     pinMode(R_LED, OUTPUT);
-
-    //     digitalWrite(R_LED, HIGH);
-    // }
-
-    // else if (request.indexOf("POST /setsong") >= 0)
-    // {
-    //     client.println("HTTP/1.1 200 OK");
-    //     client.println("Content-type:text/html");
-    //     client.println();                        // header 끝
-    //     client.println("<h1>red light on</h1>"); // 본문 내용
-
-    //     pinMode(R_LED, OUTPUT);
-
-    //     digitalWrite(R_LED, LOW);
-    // }
-
-    // else if (request.indexOf("POST /setalarmtime") >= 0)
-    // {
-    //     client.println("HTTP/1.1 200 OK");
-    //     client.println("Content-type:text/html");
-    //     client.println();                        // header 끝
-    //     client.println("<h1>red light on</h1>"); // 본문 내용
-
-    //     pinMode(R_LED, OUTPUT);
-
-    //     digitalWrite(R_LED, LOW);
-    // }
 }
