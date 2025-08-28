@@ -47,9 +47,9 @@ void wifi_init()
                                                                                          JsonObject root = response->getRoot();
                                                                                          if (obj.containsKey("notes"))
                                                                                          {
+                                                                                             Serial.printf("받은 값 : %s\n", currentSong);
 
                                                                                              currentSong = obj["notes"].as<String>();
-                                                                                             Serial.printf("받은 값 : %s\n", currentSong);
 
                                                                                              playSong(currentSong);
 
@@ -161,10 +161,48 @@ void wifi_init()
                                                                                                request->send(response);
                                                                                            });
 
+    AsyncCallbackJsonWebHandler *handlerofVolumeDown = new AsyncCallbackJsonWebHandler("/volumedown",
+                                                                                       [](AsyncWebServerRequest *request, JsonVariant &json)
+                                                                                       {
+                                                                                           AsyncJsonResponse *response = new AsyncJsonResponse();
+                                                                                           JsonObject root = response->getRoot();
+
+                                                                                           Serial2.write('0');
+                                                                                           delay_ms(10);
+
+                                                                                           root["code"] = 200;
+                                                                                           root["data"] = "";
+                                                                                           root["msg"] = "볼륨 낮추기 성공";
+
+                                                                                           response->setLength();
+
+                                                                                           request->send(response);
+                                                                                       });
+
+    AsyncCallbackJsonWebHandler *handlerofVolumeUp = new AsyncCallbackJsonWebHandler("/volumeup",
+                                                                                     [](AsyncWebServerRequest *request, JsonVariant &json)
+                                                                                     {
+                                                                                         AsyncJsonResponse *response = new AsyncJsonResponse();
+                                                                                         JsonObject root = response->getRoot();
+
+                                                                                         Serial2.write('9');
+                                                                                         delay_ms(10);
+
+                                                                                         root["code"] = 200;
+                                                                                         root["data"] = "";
+                                                                                         root["msg"] = "볼륨 올리기 성공";
+
+                                                                                         response->setLength();
+
+                                                                                         request->send(response);
+                                                                                     });
+
     server.addHandler(handlerToPlaySong);
     server.addHandler(handlerToSetSong);
     server.addHandler(handlerToSetAlarmTime);
     server.addHandler(handlerToSetCurrentTime);
+    server.addHandler(handlerofVolumeDown);
+    server.addHandler(handlerofVolumeUp);
 
     DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
     DefaultHeaders::Instance().addHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");

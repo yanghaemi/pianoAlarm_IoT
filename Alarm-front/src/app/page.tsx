@@ -76,10 +76,6 @@ export default function Page() {
 
   const playSong = async() => {
     try {
-      
-
-      setCurrentSong(currentSong);
-
       const response = await axios.post(`${esp32Url}/playsong`, {
         "length": currentSong?.notes.length,
         "notes" : currentSong?.notes
@@ -93,7 +89,6 @@ export default function Page() {
   }
 
   const setAlarm = async () => {
-    
     try {
       const response = await axios.post(`${esp32Url}/setsong`, {
         "length": currentSong?.notes.length,
@@ -133,6 +128,28 @@ export default function Page() {
     } catch (e) {
       console.log("error: " + e);
       setResult("알람 노래 설정 실패 😱");
+    }
+  };
+
+  const volumeDown = async () => {
+    try {
+      const response = await axios.get(`${esp32Url}/volumedown`);
+
+      console.log("응답: " + response);
+    } catch (e) {
+      console.log("error: " + e);
+      setResult("volume down 실패 😱");
+    }
+  };
+
+  const volumeUp = async () => {
+    try {
+      const response = await axios.get(`${esp32Url}/volumeup`);
+
+      console.log("응답: " + response);
+    } catch (e) {
+      console.log("error: " + e);
+      setResult("volume up 실패 😱");
     }
   };
 
@@ -242,10 +259,11 @@ export default function Page() {
           </div> 
         </div>
         <div className='selectSong'>
-        <h4 className='normal'>현재 곡 : {currentSong?.title} <br/> {result} </h4>
-          
-        <button className="btn btn-secondary playBtn normal" onClick={playSong}>재생</button>
-        <button className="btn btn-secondary setBtn normal" onClick={setAlarm}>이 곡으로 알람 설정</button>
+          <h4 className='normal'>현재 곡 : {currentSong?.title} <br/> {result} </h4>  
+          <button className="btn btn-secondary playBtn normal" onClick={playSong}>재생</button>
+          <button className="btn btn-secondary setBtn normal" onClick={setAlarm}>이 곡으로 알람 설정</button>
+          <button className="btn btn-secondary deleteBtn normal" onClick={volumeDown}>🔉</button>
+          <button className="btn btn-secondary deleteBtn normal" onClick={volumeUp}>🔊</button>
         </div>
       </div>
 
@@ -276,7 +294,13 @@ export default function Page() {
               id="button-addon2"
               onClick={() => {
                 console.log(`현재 시각: ${currentHour}시 ${currentMin}분`);
-                setCurrentTime();
+                if (0 > alarmHour || alarmHour > 24 || alarmMin > 60 || alarmMin < 0) {
+                  setResult("시간을 제대로 입력해주세요.");
+                  console.log("시간을 제대로 입력해주세요.");
+                }
+                else {
+                  setCurrentTime();
+                }
               }}>현재 시간 설정
             </button>
           </div>
@@ -307,7 +331,12 @@ export default function Page() {
               id="button-addon2"
               onClick={() => {
                 console.log(`알람: ${alarmHour}시 ${alarmMin}분`);
-                setAlarmTime();
+                if (0 > alarmHour || alarmHour > 24 || alarmMin> 60 || alarmMin < 0) {
+                  setResult("시간을 제대로 입력해주세요.");
+                }
+                else {
+                  setAlarmTime();
+                }
               }}>알람 시간 설정 
             </button>
           </div>
