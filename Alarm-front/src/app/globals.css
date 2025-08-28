@@ -82,6 +82,13 @@ body {
   margin: 5px;
 }
 
+.selectSong {
+  margin: 5px 0px;
+  padding: 10px;
+  border: 2px solid rgba(189, 189, 189, 0.822);
+  border-radius: 15px;
+}
+
 .songList {
   background-color: rgb(230, 226, 221);
   border-radius: 20px;
@@ -133,6 +140,11 @@ body {
   border-radius: 20px;
   border-color: #171717;
   border: 2px solid;
+}
+
+.deleteBtn {
+  background-color: #ffffff;
+  border-radius: 10px;
 }
 
 .song {
