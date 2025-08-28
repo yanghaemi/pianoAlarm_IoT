@@ -1,5 +1,3 @@
-// #include <WiFi.h>
-// #include <SPI.h>
 #include <stdio.h>
 #include <string.h>
 #include <Arduino.h>
@@ -22,8 +20,6 @@ void setup()
 
 void loop()
 {
-
-  wifi_loop();
 
   if (flag_1ms)
   {

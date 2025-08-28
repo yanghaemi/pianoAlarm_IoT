@@ -38,7 +38,14 @@ export default function Page() {
   const getSongList = async () => {
 
     try {
-      const response = await axios.get(`${apiUrl}/api/getsonglist`);
+      const response = await axios.get(`${apiUrl}/api/getsonglist`,
+        {
+          headers: {
+            "Accept": "application/json",
+            "ngrok-skip-browser-warning": "true"   // ngrok 허용 헤더
+          }
+        }
+      );
 
       setSongList(response.data.data);
 
@@ -69,15 +76,12 @@ export default function Page() {
 
   const playSong = async() => {
     try {
-      const mySong: Song = {
-        id: 1,
-        title: "test",
-        notes: "CDEFGABC"
-      };
+      
 
-      setCurrentSong(mySong);
+      setCurrentSong(currentSong);
 
       const response = await axios.post(`${esp32Url}/playsong`, {
+        "length": currentSong?.notes.length,
         "notes" : currentSong?.notes
       })
       console.log("playSong 보낼 거 : " + currentSong?.notes);
@@ -91,14 +95,18 @@ export default function Page() {
   const setAlarm = async () => {
     
     try {
-      const response = await axios.post(`${esp32Url}/setsong`,
-        {
-          "notes": currentSong?.notes
-        });
-      console.log("setAlarm 보낼 거 : " + currentSong?.notes);
+      const response = await axios.post(`${esp32Url}/setsong`, {
+        "length": currentSong?.notes.length,
+        "notes": currentSong?.notes
+      });
+      console.log("setAlarm 보낼 거 : " + currentSong?.notes.length + ":" + currentSong?.notes);
+      setResult("알람 노래로 설정 😺 \n"+currentSong?.title + "\n"+currentSong?.notes);
+
       console.log("응답: " + response);
     } catch (e) {
       console.log("에러: " + e);
+      console.log("setAlarm 보낼 거 : " + currentSong?.notes.length + ":" + currentSong?.notes);
+
     }
   };
 
@@ -122,7 +130,6 @@ export default function Page() {
       });
 
       console.log("응답: " + response);
-      setResult("알람 노래로 설정 😺 \n"+currentSong?.title + "\n"+currentSong?.notes);
     } catch (e) {
       console.log("error: " + e);
       setResult("알람 노래 설정 실패 😱");
@@ -219,13 +226,13 @@ export default function Page() {
           </div>
           
           <div className='songListBody'>
-            {songList.map((song) => (
+            {songList?.map((song) => (
               <div className='songEntity' key={song.id} >
                 <button className="btn song" onClick={() => { setCurrentSong(song); }}>
                   {song.title}
                 </button>
                 <button
-                  className='btn deletebtn'
+                  className='btn deleteBtn'
                   onClick={() => {
                     deleteSong(song);
                   }}>🗑️
@@ -234,11 +241,12 @@ export default function Page() {
             ))}
           </div> 
         </div>
-        
-        <text className='normal'>현재 곡 : {currentSong?.title} <br/> {result} </text>
+        <div className='selectSong'>
+        <h4 className='normal'>현재 곡 : {currentSong?.title} <br/> {result} </h4>
           
         <button className="btn btn-secondary playBtn normal" onClick={playSong}>재생</button>
         <button className="btn btn-secondary setBtn normal" onClick={setAlarm}>이 곡으로 알람 설정</button>
+        </div>
       </div>
 
       {/* 알람 */}
