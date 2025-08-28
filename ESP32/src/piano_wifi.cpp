@@ -1,14 +1,13 @@
-#include <WiFi.h>
-#include <WebServer.h>
-#include <ArduinoJson.h>
+
 #include <Arduino.h>
-#include <stdio.h>
-#include <string.h>
-#include "freertos/task.h"
-#include "freertos/FreeRTOS.h" // Queue, Task 등 RTOS 사용 시
-#include "freertos/queue.h"    // QueueHandle_t 정의
+#include <AsyncTCP.h>
+#include <WiFi.h>
+#include <ESPAsyncWebServer.h>
+#include <ArduinoJson.h>
+#include <AsyncJson.h>
 
 #include "task.h"
+#include "api.h"
 
 #define R_LED 2
 
@@ -17,67 +16,7 @@ static const char *TAG = "MAIN";
 const char *ssid = WIFI_SSID;
 const char *password = WIFI_PASS;
 
-// unsigned int hour = 0;
-// unsigned int min = 0;
-
-WebServer server(80);
-
-String body;
-
-int handleNotes()
-{
-    body = server.arg("notes");
-    // String body = server.arg("notes"); 노트북 가져오면 notes -> plain로 바꾸기, get-> post로 바꾸기
-
-    Serial.println("받은 JSON: " + body);
-
-    JsonDocument doc;
-
-    DeserializationError err = deserializeJson(doc, body);
-
-    if (err)
-    {
-        Serial.print("JSON 파싱 실패: ");
-        Serial.println(err.c_str());
-        server.send(400, "application/json", "{\"code\":\"400\", \"data\":null, \"msg\": \"json 데이터 가져오기 실패\"}");
-        return 0;
-    }
-
-    return 1;
-}
-
-void handlePlaySong()
-{
-    if (handleNotes())
-    {
-        currentSong = body.c_str();
-        song_idx = 0;
-
-        playSongFlag = true;
-
-        server.send(200, "application/json", "{\"code\":\"200\", \"data\":null, \"msg\": \"노래 재생 성공\"}");
-    }
-}
-
-void handleSetSong()
-{
-    if (handleNotes())
-    {
-        currentSong = body.c_str();
-        song_idx = 0;
-
-        playSongFlag = false;
-
-        server.send(200, "application/json", "{\"code\":\"200\", \"data\":null, \"msg\": \"노래 세팅 성공\"}");
-    }
-}
-
-void handleSetAlarmTimeSong()
-{
-    playSongFlag = false;
-
-    server.send(200, "application/json", "{\"code\":\"200\", \"data\":null, \"msg\": \"알람 세팅 성공\"}");
-}
+static AsyncWebServer server(80);
 
 void wifi_init()
 {
@@ -94,13 +33,154 @@ void wifi_init()
     Serial.print(String("WIFI connected\n IP : "));
     Serial.println(WiFi.localIP());
 
-    server.on("/playsong", HTTP_GET, handlePlaySong);
+    /*server.on("/playsong", HTTP_POST, handlePlaySong);
     server.on("/setsong", HTTP_POST, handleSetSong);
     server.on("/setalarmtime", HTTP_POST, handleSetAlarmTimeSong);
-    server.begin();
-}
+    server.begin();*/
 
-void wifi_loop()
-{
-    server.handleClient();
+    AsyncCallbackJsonWebHandler *handlerToPlaySong = new AsyncCallbackJsonWebHandler("/playsong",
+                                                                                     [](AsyncWebServerRequest *request, JsonVariant &json)
+                                                                                     {
+                                                                                         JsonObject obj = json.as<JsonObject>();
+
+                                                                                         AsyncJsonResponse *response = new AsyncJsonResponse();
+                                                                                         JsonObject root = response->getRoot();
+                                                                                         if (obj.containsKey("notes"))
+                                                                                         {
+
+                                                                                             currentSong = obj["notes"].as<String>();
+                                                                                             Serial.printf("받은 값 : %s\n", currentSong);
+
+                                                                                             playSong(currentSong);
+
+                                                                                             root["code"] = 200;
+                                                                                             root["data"] = "";
+                                                                                             root["msg"] = "jkit 노래 재생 성공";
+                                                                                         }
+                                                                                         else
+                                                                                         {
+                                                                                             root["code"] = 400;
+                                                                                             root["data"] = "";
+                                                                                             root["msg"] = "jkit 노래 재생 실패";
+                                                                                         }
+                                                                                         response->setLength();
+
+                                                                                         request->send(response);
+                                                                                     });
+
+    AsyncCallbackJsonWebHandler *handlerToSetSong = new AsyncCallbackJsonWebHandler("/setsong",
+                                                                                    [](AsyncWebServerRequest *request, JsonVariant &json)
+                                                                                    {
+                                                                                        JsonObject obj = json.as<JsonObject>();
+
+                                                                                        AsyncJsonResponse *response = new AsyncJsonResponse();
+                                                                                        JsonObject root = response->getRoot();
+                                                                                        if (obj.containsKey("notes"))
+                                                                                        {
+                                                                                            currentSong = obj["notes"].as<String>();
+
+                                                                                            Serial.printf("받은 값 : %s\n", currentSong);
+
+                                                                                            root["code"] = 200;
+                                                                                            root["data"] = "";
+                                                                                            root["msg"] = "jkit 알람 노래 설정 성공";
+                                                                                        }
+                                                                                        else
+                                                                                        {
+                                                                                            root["code"] = 400;
+                                                                                            root["data"] = "";
+                                                                                            root["msg"] = "jkit 알람 노래 설정 실패";
+                                                                                        }
+                                                                                        response->setLength();
+
+                                                                                        request->send(response);
+                                                                                    });
+
+    AsyncCallbackJsonWebHandler *handlerToSetAlarmTime = new AsyncCallbackJsonWebHandler("/setalarmtime",
+                                                                                         [](AsyncWebServerRequest *request, JsonVariant &json)
+                                                                                         {
+                                                                                             JsonObject obj = json.as<JsonObject>();
+
+                                                                                             AsyncJsonResponse *response = new AsyncJsonResponse();
+                                                                                             JsonObject root = response->getRoot();
+
+                                                                                             if (obj.containsKey("hour") && obj.containsKey("min"))
+                                                                                             {
+
+                                                                                                 int hour = obj["hour"];
+                                                                                                 int min = obj["min"];
+
+                                                                                                 Serial.printf("받은 값 : 알람 시간 %d시 %d분 \n", hour, min);
+
+                                                                                                 setAlarmTime(hour, min);
+
+                                                                                                 root["code"] = 200;
+                                                                                                 root["data"] = "";
+                                                                                                 root["msg"] = "jkit 알람 시간 설정 성공";
+                                                                                             }
+                                                                                             else
+                                                                                             {
+                                                                                                 root["code"] = 400;
+                                                                                                 root["data"] = "";
+                                                                                                 root["msg"] = "jkit 알람 시간 설정 성공";
+                                                                                             }
+                                                                                             response->setLength();
+
+                                                                                             request->send(response);
+                                                                                         });
+
+    AsyncCallbackJsonWebHandler *handlerToSetCurrentTime = new AsyncCallbackJsonWebHandler("/setcurrenttime",
+                                                                                           [](AsyncWebServerRequest *request, JsonVariant &json)
+                                                                                           {
+                                                                                               JsonObject obj = json.as<JsonObject>();
+                                                                                               AsyncJsonResponse *response = new AsyncJsonResponse();
+                                                                                               JsonObject root = response->getRoot();
+
+                                                                                               if (obj.containsKey("hour") && obj.containsKey("min"))
+                                                                                               {
+                                                                                                   int hour = obj["hour"];
+                                                                                                   int min = obj["min"];
+
+                                                                                                   Serial.printf("받은 값 : 현재 시간 %d시 %d분 \n", hour, min);
+
+                                                                                                   setCurrentTime(hour, min);
+
+                                                                                                   root["code"] = 200;
+                                                                                                   root["data"] = "";
+                                                                                                   root["msg"] = "jkit 현재 시간 설정 성공";
+                                                                                               }
+                                                                                               else
+                                                                                               {
+                                                                                                   root["code"] = 200;
+                                                                                                   root["data"] = "";
+                                                                                                   root["msg"] = "jkit 현재 시간 설정 실패";
+                                                                                               }
+
+                                                                                               response->setLength();
+
+                                                                                               request->send(response);
+                                                                                           });
+
+    server.addHandler(handlerToPlaySong);
+    server.addHandler(handlerToSetSong);
+    server.addHandler(handlerToSetAlarmTime);
+    server.addHandler(handlerToSetCurrentTime);
+
+    DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
+    DefaultHeaders::Instance().addHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    DefaultHeaders::Instance().addHeader("Access-Control-Allow-Headers", "Content-Type");
+
+    // OPTIONS 요청 처리
+    server.onNotFound([](AsyncWebServerRequest *request)
+                      {
+                          if (request->method() == HTTP_OPTIONS)
+                          {
+                              request->send(200); // 프리플라이트 요청에 OK 응답
+                          }
+                          else
+                          {
+                              request->send(404); // 나머지는 기존대로 404
+                          } });
+
+    server.begin();
 }

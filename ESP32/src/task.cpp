@@ -9,48 +9,78 @@
 #include "task.h"
 #include "define.h"
 
-unsigned int task_1ms = 0;
-unsigned int task_500ms = 0;
-boolean flag_1ms = false;
+volatile unsigned int task_1ms = 0;
+volatile unsigned int delay_1ms = 0;
+volatile unsigned int task_300ms = 0;
+volatile boolean flag_1ms = false;
 
-boolean playSongFlag = false;
-unsigned int song_idx = 0;
+volatile boolean playSongFlag = false;
+volatile unsigned int song_idx = 0;
 String currentSong;
 
 void do_every_1ms()
 {
-    if (Serial2.read() == 'P')
+    int c = Serial2.read();
+    if (c == 'P')
     {
         playSongFlag = true;
-        song_idx = true;
+        Serial.println("알람시작");
+
+        song_idx = 0;
     }
+
+    if (c == 'S')
+    {
+        playSongFlag = false;
+        Serial.println("멈췃소");
+        song_idx = 0;
+    }
+
+    while (Serial2.available() > 0)
+    {
+        Serial2.read();
+    }
+
+    return;
+}
+
+void delay_ms(unsigned int ms)
+{
+    delay_1ms = 0;
+    while (delay_1ms < ms)
+        ;
+
+    return;
 }
 
 void task()
 {
     do_every_1ms();
 
-    if (++task_500ms >= 500) // 300ms task
+    if (++task_300ms >= 300) // 300ms task
     {
         if (playSongFlag == true)
         {
-            if (*(volatile uint32_t *)(0x3FF44004) & (1 << 2))
-                *(volatile uint32_t *)(0x3FF4400C) = (1 << 2);
-            else
-                *(volatile uint32_t *)(0x3FF44008) = (1 << 2);
+
+            if (currentSong.length() == 0)
+            {
+                playSongFlag = false;
+                return;
+            }
 
             Serial.println(currentSong[song_idx]);
             Serial2.write(currentSong[song_idx++]);
 
             if (song_idx >= currentSong.length())
             {
-                Serial.println("끝");
+                Serial.print("끝");
+                Serial.println(currentSong.length());
 
-                playSongFlag = false;
+                song_idx = 0;
             }
         }
 
-        task_500ms = 0;
+        task_300ms = 0;
     }
 }
 
@@ -61,6 +91,7 @@ void IRAM_ATTR isr_task(void *param)
     timer_group_enable_alarm_in_isr(TIMER_GROUP_0, TIMER_0);    // 인터럽트 사용
 
     task_1ms++;
+    delay_1ms++;
     flag_1ms = true;
 }
 
